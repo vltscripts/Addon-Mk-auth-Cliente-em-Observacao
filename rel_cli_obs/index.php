@@ -14,26 +14,40 @@ $manifestVersion = isset($Manifest->{'version'}) ? $Manifest->{'version'} : '';
 ?>
 
 <!DOCTYPE html>
+<?php
+if (isset($_SESSION['MM_Usuario'])) {
+    echo '<html lang="pt-BR">'; // Fix versão antiga MK-AUTH
+} else {
+    echo '<html lang="pt-BR" class="has-navbar-fixed-top">';
+}
+?>
 <html lang="pt-BR">
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
-    <title>MK - AUTH :: <?php echo htmlspecialchars($manifestTitle . " - V " . $manifestVersion); ?></title>
+    <title>MK - AUTH :: <?= htmlspecialchars($manifestTitle . " - V " . $manifestVersion); ?></title>
 
-    <link href="../../estilos/mk-auth.css" rel="stylesheet" type="text/css" />
-    <link href="../../estilos/font-awesome.css" rel="stylesheet" type="text/css" />
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js">
+    <link rel="stylesheet" href="../../estilos/mk-auth.css">
+    <link rel="stylesheet" href="../../estilos/font-awesome.css">
     <script src="../../scripts/jquery.js"></script>
     <script src="../../scripts/mk-auth.js"></script>
 
     <style type="text/css">
         /* Estilos CSS personalizados */
         body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 40px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        hr {
+            width: 80%;
+            margin: 20px auto;
+            border-top: 1px solid #ccc;
         }
 
         form,
@@ -131,11 +145,23 @@ $manifestVersion = isset($Manifest->{'version'}) ? $Manifest->{'version'} : '';
 
         .nome_cliente td {
             border-bottom: 1px solid #ddd;
-            text-align: center; /* Adicionado para centralizar os nomes dos clientes na coluna "Nome do Cliente" */
+            text-align: center;
         }
 
         .nome_cliente:nth-child(odd) {
             background-color: #FFFF99;
+        }
+
+        /* Adiciona uma borda direita na coluna "Nome do Cliente" */
+        table th:first-child,
+        table td:first-child {
+            border-right: 1px solid #ddd;
+        }
+
+        /* Adiciona uma borda direita na coluna "Data remover" */
+        table th:nth-child(2),
+        table td:nth-child(2) {
+            border-right: 1px solid #ddd;
         }
     </style>
 
@@ -145,10 +171,10 @@ $manifestVersion = isset($Manifest->{'version'}) ? $Manifest->{'version'} : '';
             document.forms['searchForm'].submit();
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
             var cells = document.querySelectorAll('.table-container tbody td.plan-name');
-            cells.forEach(function (cell) {
-                cell.addEventListener('click', function () {
+            cells.forEach(function(cell) {
+                cell.addEventListener('click', function() {
                     var planName = this.innerText;
                     document.getElementById('search').value = planName;
                     document.title = 'Painel: ' + planName;
@@ -156,6 +182,43 @@ $manifestVersion = isset($Manifest->{'version'}) ? $Manifest->{'version'} : '';
                 });
             });
         });
+
+        function sortTable(columnIndex) {
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.querySelector('.table-container table');
+            switching = true;
+            dir = 'asc';
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("TD")[columnIndex];
+                    y = rows[i + 1].getElementsByTagName("TD")[columnIndex];
+                    if (dir == "asc") {
+                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir == "desc") {
+                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount == 0 && dir == "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
     </script>
 
 </head>
@@ -179,39 +242,47 @@ $manifestVersion = isset($Manifest->{'version'}) ? $Manifest->{'version'} : '';
         // Formulário Atualizado com Funcionalidade de Busca
     ?>
         <form id="searchForm" method="GET">
-            <label for="search">Buscar Cliente:</label>
-            <input type="text" id="search" name="search" placeholder="Digite o nome do cliente" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
-            <input type="submit" value="Buscar">
-            <button type="button" onclick="clearSearch()" class="clear-button">Limpar</button>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
+                <div style="width: 60%; margin-right: 10px;">
+                    <label for="search" style="font-weight: bold; margin-bottom: 5px;">Buscar Cliente:</label>
+                    <input type="text" id="search" name="search" placeholder="Digite o Nome do Cliente" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc;">
+                </div>
+                <div style="display: flex; align-items: flex-end;">
+                    <input type="submit" value="Buscar" style="padding: 10px; border: 1px solid #4caf50; background-color: #4caf50; color: white; font-weight: bold; cursor: pointer; border-radius: 5px; margin-right: 10px;">
+                    <button type="button" onclick="clearSearch()" class="clear-button" style="padding: 10px; border: 1px solid #e74c3c; background-color: #e74c3c; color: white; font-weight: bold; cursor: pointer; border-radius: 5px; margin-right: 10px;">Limpar</button>
+                    <button type="button" onclick="sortTable(1)" class="clear-button sort-button-1" style="padding: 10px; border: 1px solid #4336f4; background-color: #4336f4; color: white; font-weight: bold; cursor: pointer; border-radius: 5px;">Ordenar</button>
+                </div>
+            </div>
         </form>
 
         <?php
         // Dados de conexão com o banco de dados já estão em config.php
         // Consulta SQL para obter a quantidade de clientes sem carne
-$countQuery = "SELECT COUNT(c.login) AS client_count FROM sis_cliente c WHERE c.cli_ativado = 's' AND c.observacao = 'sim'";
+        $countQuery = "SELECT COUNT(c.login) AS client_count, SUM(IF(c.tit_vencidos > 0, c.tit_vencidos, 0)) AS overdue_count FROM sis_cliente c WHERE c.cli_ativado = 's' AND c.observacao = 'sim'";
 
-if (!empty($_GET['search'])) {
-    $countQuery .= " AND (c.login LIKE ? OR c.nome LIKE ?)";
-}
+        if (!empty($_GET['search'])) {
+            $countQuery .= " AND (c.login LIKE ? OR c.nome LIKE ?)";
+        }
 
-$stmt = mysqli_prepare($link, $countQuery);
+        $stmt = mysqli_prepare($link, $countQuery);
 
-if (!empty($_GET['search'])) {
-    $search = '%' . mysqli_real_escape_string($link, $_GET['search']) . '%';
-    mysqli_stmt_bind_param($stmt, "ss", $search, $search);
-}
+        if (!empty($_GET['search'])) {
+            $search = '%' . mysqli_real_escape_string($link, $_GET['search']) . '%';
+            mysqli_stmt_bind_param($stmt, "ss", $search, $search);
+        }
 
-mysqli_stmt_execute($stmt);
-$countResult = mysqli_stmt_get_result($stmt);
+        mysqli_stmt_execute($stmt);
+        $countResult = mysqli_stmt_get_result($stmt);
 
-if ($countResult) {
-    $countRow = mysqli_fetch_assoc($countResult);
-    $clientCount = $countRow['client_count'];
+        if ($countResult) {
+            $countRow = mysqli_fetch_assoc($countResult);
+            $clientCount = $countRow['client_count'];
+            $overdueCount = $countRow['overdue_count']; // Nova variável para contagem de boletos vencidos
 
-    echo "<div class='client-count-container'><p class='client-count blue'>Quantidade de clientes em Observação: $clientCount</p></div>";
-} else {
-    echo "<div class='client-count-container'><p class='client-count blue'>Erro ao obter a quantidade de clientes</p></div>";
-}
+            echo "<div class='client-count-container'><p class='client-count blue'>Clientes em Observação: $clientCount</p></div>";
+        } else {
+            echo "<div class='client-count-container'><p class='client-count blue'>Erro ao obter a quantidade de clientes</p></div>";
+        }
 
         // Tabela: Nomes dos Clientes com Logins Lado a Lado
         ?>
@@ -221,6 +292,7 @@ if ($countResult) {
                     <tr>
                         <th>Nome do Cliente</th>
                         <th>Data remover</th>
+                        <th>Boletos Vencidos</th> <!-- Adicionando a coluna Boletos Vencidos -->
                     </tr>
                 </thead>
                 <tbody>
@@ -232,18 +304,15 @@ if ($countResult) {
                         $searchCondition = " AND (c.login LIKE '%$search%' OR c.nome LIKE '%$search%')";
                     }
 
-// Consulta SQL para obter os clientes em observação com data de remoção
-$query = "SELECT c.uuid_cliente, c.nome, c.rem_obs
-          FROM sis_cliente c
-          WHERE c.cli_ativado = 's' AND c.observacao = 'sim'"
-          . $searchCondition .
-          " ORDER BY c.rem_obs DESC"; // Ordenar por data de remoção em ordem decrescente
+                    // Consulta SQL para obter os clientes em observação com data de remoção
+                    $query = "SELECT c.uuid_cliente, c.nome, c.rem_obs, c.tit_vencidos
+                              FROM sis_cliente c
+                              WHERE c.cli_ativado = 's' AND c.observacao = 'sim'"
+                        . $searchCondition .
+                        " ORDER BY c.rem_obs DESC"; // Ordenar por data de remoção em ordem decrescente
 
-// Execute a consulta
-$result = mysqli_query($link, $query);
-
-
-
+                    // Execute a consulta
+                    $result = mysqli_query($link, $query);
 
                     // Verifique se a consulta foi bem-sucedida
                     if ($result) {
@@ -258,13 +327,29 @@ $result = mysqli_query($link, $query);
 
                             // Adiciona o link apenas no campo de nome do cliente
                             echo "<tr class='$nomeClienteClass'>";
-                            echo "<td><a href='../../cliente_det.hhvm?uuid=" . $row['uuid_cliente'] . "' target='_blank' title='VER CLIENTE: $nome_por_num_titulo'>" . $row['nome'] . "</a></td>";
-                            echo "<td style='text-align: center;'>" . ($row['rem_obs'] ? date('d/m/Y', strtotime($row['rem_obs'])) : 'N/A') . "</td>";
-                            echo "</tr>";
+							
+							// Nome do Cliente	
+                            echo "<td style='position: relative;'>";
+                            echo "<img src='img/icon_ativo.png' alt='Ícone de Nome' width='25' height='25' style='position: absolute; left: 0; top: 50%; transform: translateY(-50%);'> ";
+                            echo "<a href='../../cliente_det.hhvm?uuid=" . $row['uuid_cliente'] . "' target='_blank' title='VER CLIENTE: $nome_por_num_titulo'>" . $row['nome'] . "</a>";
+                            echo "</td>";
+							
+							// Data remover	
+                            echo "<td style='border: 1px solid #ddd; padding: 1px; text-align: center; color: #e61515; font-weight: bold; position: relative;'>";
+                            echo "<img src='img/calendario.png' alt='Ícone de Valor' width='20' height='20' style='position: absolute; left: 0; top: 50%; transform: translateY(-50%);'> ";
+                            echo ($row['rem_obs'] ? date('d/m/Y', strtotime($row['rem_obs'])) : 'N/A');
+                            echo "</td>";
+                            
+							// Titulos Vencidos
+                            echo "<td style='border: 1px solid #ddd; padding: 1px; text-align: center; color: #e61515; font-weight: bold; position: relative;'>";
+                            echo "<img src='img/icon_boleto.png' alt='Ícone de Valor' width='20' height='20' style='position: absolute; left: 0; top: 50%; transform: translateY(-50%);'> ";
+                            echo $row['tit_vencidos'];
+							echo "</tr>";
+							echo "</td>";
                         }
                     } else {
                         // Se a consulta falhar, exiba uma mensagem de erro
-                        echo "<tr><td colspan='2'>Erro na consulta: " . mysqli_error($link) . "</td></tr>";
+                        echo "<tr><td colspan='3'>Erro na consulta: " . mysqli_error($link) . "</td></tr>";
                     }
                     ?>
                 </tbody>
