@@ -1,12 +1,12 @@
 <?php
+// INCLUE FUNCOES DE ADDONS -----------------------------------------------------------------------
 include('addons.class.php');
 
+// VERIFICA SE O USUARIO ESTA LOGADO --------------------------------------------------------------
 session_name('mka');
-session_start();
-
-if (!isset($_SESSION['MKA_Logado'])) {
-    exit('Acesso negado... <a href="/admin/">Fazer Login</a>');
-}
+if (!isset($_SESSION)) session_start();
+if (!isset($_SESSION['MKA_Logado'])) exit('Acesso negado... <a href="/admin/">Fazer Login</a>');
+// VERIFICA SE O USUARIO ESTA LOGADO --------------------------------------------------------------
 
 // Assuming $Manifest is defined somewhere before this code
 $manifestTitle = isset($Manifest->{'name'}) ? $Manifest->{'name'} : '';
